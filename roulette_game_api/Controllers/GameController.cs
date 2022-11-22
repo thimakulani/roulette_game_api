@@ -8,6 +8,7 @@ using roulette_game_api.Model;
 using SQLitePCL;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace roulette_game_api.Controllers
@@ -28,10 +29,10 @@ namespace roulette_game_api.Controllers
             string r_color = cl[new Random().Next(2)];
             string player_bet_type = placeBet.BetType;
             BetResults betResults = new BetResults();
-            if (((player_bet_type == "Even") && (roll % 2 == 0))|| 
-                (((player_bet_type == "Odd") && (roll % 2 == 1))) || 
+            if ((player_bet_type == "Even" && roll % 2 == 0)|| 
+                ((player_bet_type == "Odd") && (roll % 2 == 1)) || 
                 ((player_bet_type == "Red") && (r_color == "Red") ||
-                ((player_bet_type == "Black") && (r_color == "Black"))))
+                (player_bet_type == "Black") && (r_color == "Black")))
             {
                 betResults.Color = r_color;
                 betResults.Rolled = roll;
@@ -39,7 +40,7 @@ namespace roulette_game_api.Controllers
                 betResults.Player = placeBet.PlayerName;
                 betResults.BetAmount = BetMoney + placeBet.Amount * 2;
             }
-            else if ((player_bet_type == "1 to 18") && ((roll >= 1) && (roll <= 18)))
+            else if (player_bet_type == "1 to 18" && ((roll >= 1) && (roll <= 18)))
             {
                 betResults.Color = r_color;
                 betResults.Rolled = roll;
@@ -48,8 +49,8 @@ namespace roulette_game_api.Controllers
                 betResults.BetAmount = BetMoney + placeBet.Amount * 2;
                 betResults.Status = "Win!!";
             }
-            else if ((player_bet_type == "19 to 36") 
-                && ((roll > 18) && (roll < 37)))
+            else if (player_bet_type == "19 to 36"
+                && (roll > 18) && (roll < 37))
             {
                 betResults.Color = r_color;
                 betResults.Rolled = roll;
@@ -83,10 +84,10 @@ namespace roulette_game_api.Controllers
             }
             //SqliteConnection conn = new SqliteConnection("data source=C:\\Users\\thimas\\source\\repos\\roulette_game_api\\roulette_game_api\\DB\\roullet_db.db");
             var conn = new SQLConnection().DbConnection();
-            var res = await conn.ExecuteAsync(@"INSERT INTO BETRESULTS VALUES(@Id, @Player, @Color, @Rolled, @BetAmount, @BetType, @Status);",
+            await conn.ExecuteAsync(@"INSERT INTO BETRESULTS VALUES(@Id, @Player, @Color, @Rolled, @BetAmount, @BetType, @Status);",
                 betResults
                 );
-            return Ok(res);
+            return Ok(conn);
         }
 
        
@@ -106,12 +107,13 @@ namespace roulette_game_api.Controllers
             return BadRequest("You don`t have enough credit");
 
         }
-        [HttpPost("showspin")]
+        [HttpPost("showspins")]
         public ActionResult ShowPreviousSpins() 
         {
+            
             var conn = new SQLConnection().DbConnection();
-            var data = conn.ExecuteAsync("SELECT * FROM BETRESULTS");
-            return Ok();
+            var data = conn.Query<BetResults>("SELECT * FROM BETRESULTS");
+            return Ok(data);
         }
     }
 }
