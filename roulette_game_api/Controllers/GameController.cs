@@ -28,11 +28,15 @@ namespace roulette_game_api.Controllers
             int roll = new Random().Next(0, 37);
             string r_color = cl[new Random().Next(2)];
             string player_bet_type = placeBet.BetType;
-            BetResults betResults = new BetResults();
+            BetResults betResults = new();
+
+
+
+            //evaluating the game rules and assigning point to Bet results object which will be returned to the api call
             if ((player_bet_type == "Even" && roll % 2 == 0)|| 
-                ((player_bet_type == "Odd") && (roll % 2 == 1)) || 
-                ((player_bet_type == "Red") && (r_color == "Red") ||
-                (player_bet_type == "Black") && (r_color == "Black")))
+                (player_bet_type == "Odd" && (roll % 2 == 1)) || 
+                (player_bet_type == "Red" && (r_color == "Red") ||
+                player_bet_type == "Black" && (r_color == "Black")))
             {
                 betResults.Color = r_color;
                 betResults.Rolled = roll;
@@ -59,11 +63,11 @@ namespace roulette_game_api.Controllers
                 betResults.BetAmount = BetMoney + placeBet.Amount * 2;
                 betResults.Status = "Win";
             }
-            else if ((player_bet_type == "1st 12") && 
+            else if (player_bet_type == "1st 12" && 
                 (roll > 0 && roll < 13) || 
-                (player_bet_type == "2nd 12") &&
+                player_bet_type == "2nd 12" &&
                 (roll > 12 && roll < 25) || 
-                (player_bet_type == "3rd 12") && 
+                player_bet_type == "3rd 12" && 
                 (roll > 24 && roll < 37))
             {
                 betResults.Color = r_color;
@@ -86,7 +90,7 @@ namespace roulette_game_api.Controllers
             var conn = new SQLConnection().DbConnection();
             await conn.ExecuteAsync(@"INSERT INTO BETRESULTS VALUES(@Id, @Player, @Color, @Rolled, @BetAmount, @BetType, @Status);",
                 betResults
-                );
+                );//inserting the bet results into sql lite
             return Ok(conn);
         }
 
