@@ -11,15 +11,13 @@ Swagger UI,
 
 
 
-USE [Northwind]
-GO
-/****** Object:  StoredProcedure [dbo].[pr_GetOrderSummary]    Script Date: 2022/11/22 16:34:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
+--SELECT TitleOfCourtesy + ' ' + LastName + ' ' + FirstName as EmployeeFullName, 
+--	Shippers.CompanyName, Orders.EmployeeID, Customers.ContactName, [Order Details].UnitPrice, Orders.Freight
+IF OBJECT_ID('pr_GetOrderSummary', 'P') IS NOT NULL
+    DROP PROCEDURE pr_GetOrderSummary
 GO
 
-ALTER PROCEDURE [dbo].[pr_GetOrderSummary] 
+CREATE PROCEDURE pr_GetOrderSummary 
 @EmployeeID NVARCHAR(100) = NULL,
 @CustomerID NVARCHAR(100) = NULL,
 @StartDate DATE='1 Jan 1996',
@@ -28,7 +26,7 @@ ALTER PROCEDURE [dbo].[pr_GetOrderSummary]
 AS
 BEGIN
 SELECT Employees.TitleOfCourtesy + ' ' +Employees. LastName + ' ' + Employees.FirstName as EmployeeFullName,
-	Shippers.CompanyName, Customers.CompanyName as CustomerCompanyName, FORMAT (o.OrderDate, 'dd-MM-yyyy') as Date, O.Freight, COUNT(o.OrderID) AS NumberOfOders,
+	Shippers.CompanyName as "Shipper CompanyName", Customers.CompanyName as "Customer CompanyName", FORMAT (o.OrderDate, 'dd-MM-yyyy') as Date, O.Freight, COUNT(o.OrderID) AS NumberOfOders,
 	Round(Sum(p.UnitPrice*quantity*(1-Discount)), 2) as TotalOrderValue, COUNT(p.ProductID) AS NumberOfDifferentProducts
 	
 FROM Orders AS o
@@ -42,6 +40,7 @@ JOIN ( SELECT DISTINCT *
 		) p ON [Order Details].ProductID = p.ProductID
 WHERE (Employees.EmployeeID = @EmployeeID OR @EmployeeID IS NULL) AND
 	(Customers.CustomerID = @CustomerID OR @CustomerID IS NULL)
+	
 	--AND Products.ProductName IN (SELECT DISTINCT ProductName
 	--							FROM Products
 	--							WHERE [Order Details].ProductID=Products.ProductID
@@ -50,3 +49,6 @@ WHERE (Employees.EmployeeID = @EmployeeID OR @EmployeeID IS NULL) AND
 GROUP BY Employees.TitleOfCourtesy, Employees.FirstName, Employees.LastName, Shippers.CompanyName, 
 Customers.CompanyName, o.OrderDate, O.Freight, o.OrderID
 END
+GO
+
+exec pr_GetOrderSummary 
