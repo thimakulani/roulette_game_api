@@ -98,12 +98,13 @@ namespace roulette_game_api.Controllers
         {
             if(placeBet == null)
             {
-                return BadRequest("Missing fields");
+                throw new ArgumentNullException("Missing fields");
             }
             if(placeBet.Amount >= BetMoney)
             {
                 return Ok(placeBet);
             }
+            new ArgumentOutOfRangeException("You don`t have enough credit");
             return BadRequest("You don`t have enough credit");
 
         }
